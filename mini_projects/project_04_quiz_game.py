@@ -33,10 +33,10 @@
 #   ✅ Correct!
 # ============================================
 
-# YOUR CODE HERE:
 import random
 import time
 
+# List of quiz questions — each is a dict with question text, 4 options, and the correct answer letter
 questions = [
     {
         "question": "What is the capital of France?",
@@ -70,19 +70,25 @@ questions = [
     },
 ]
 
+# Tracks the player's score for this session
 point = 0
 
+# Shuffle questions so the order is different every game
 random.shuffle(questions)
 
 
 def get_hint(q):
-    # remove one wrong option
+    """Remove one random wrong option and return the remaining options as a hint."""
+    # Collect all options that are NOT the correct answer
     wrong_options = [opt for opt in q["options"] if not opt.startswith(q["answer"])]
+    # Pick one wrong option to remove
     removed = random.choice(wrong_options)
+    # Return options without the removed one
     return [opt for opt in q["options"] if opt != removed]
 
 
 def load_high_score():
+    """Load the high score from highscore.txt. Returns 0 if file doesn't exist."""
     try:
         with open("highscore.txt", "r") as f:
             return int(f.read())
@@ -90,40 +96,46 @@ def load_high_score():
         return 0
 
 
+# Load the high score once at startup
 high_score = load_high_score()
 
 
 def save_high_score(score):
+    """Save the new high score to highscore.txt."""
     with open("highscore.txt", "w") as f:
         f.write(str(score))
 
 
 def ask_question(q, index):
-    global point
+    """Display a question, handle hint and timer, and update the score."""
+    global point  # Modify the outer point variable
 
     print(" === Python Quiz ===")
     print(f"High Score: {high_score} out of {len(questions)}")
 
+    # Join all options into one line for display
     options_line = " ".join(q["options"])
     print(f"Q{index + 1}: {q['question']}")
     print(options_line)
 
+    # Start the timer before the user answers
     start_time = time.time()
 
     real_answer = q["answer"].lower()
     user_input = input("Your answer: ").lower()
 
+    # If user types "h", show a hint and reset the timer
     if user_input == "h":
-        start_time = time.time()
+        start_time = time.time()  # Reset timer after hint is shown
         hinted_options = get_hint(q)
         print("Hint used! Options reduced:")
         print(" ".join(hinted_options))
-
         user_input = input("Your answer: ").strip().lower()
 
+    # Stop the timer after the answer is submitted
     end_time = time.time()
 
-    # ⏱️ Timer check
+    # Check if user exceeded the 10-second time limit
     if end_time - start_time > 10:
         print("⏰ Time's up!")
     elif real_answer == user_input:
@@ -132,25 +144,30 @@ def ask_question(q, index):
     else:
         print(f"❌ Wrong! Correct answer is {real_answer}")
 
-    print()  # spacing after each question
+    print()  # Add spacing between questions
 
 
 def show_question():
+    """Loop through all questions and ask each one."""
     for index, q in enumerate(questions):
         ask_question(q, index)
 
 
+# Start the quiz
 show_question()
 
 total = len(questions)
 percentage = round((point / total) * 100)
 
+# Show final results
 print(f"Score: {point}/{total}")
 print(f"Percentage: {percentage:.0f}%")
 
+# Save high score if current score beats the previous best
 if point >= high_score:
     save_high_score(point)
 
+# Show rating based on percentage
 if percentage == 100:
     print("Perfect! 🏆")
 elif 80 <= percentage < 100:
